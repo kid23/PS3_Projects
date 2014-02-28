@@ -11,27 +11,6 @@ diff -ur nvidia-texture-tools/src/nvimage/DirectDrawSurface.cpp org/src/nvimage/
  	this->reserved[10] = (2 << 16) | (0 << 8) | (8);	// major.minor.revision
  
  	this->pf.size = 32;
-diff -ur nvidia-texture-tools/src/nvimage/ImageIO.cpp org/src/nvimage/ImageIO.cpp
---- nvidia-texture-tools/src/nvimage/ImageIO.cpp	2014-02-18 20:46:21.077182300 +0800
-+++ org/src/nvimage/ImageIO.cpp	2010-05-15 01:59:28.000000000 +0800
-@@ -14,7 +14,6 @@
- #include "FloatImage.h"
- #include "TgaFile.h"
- #include "PsdFile.h"
--#include <pngstruct.h>
- 
- // Extern
- #if defined(HAVE_JPEG)
-@@ -1504,4 +1503,7 @@
- 		return false;
- 	}
- 	
--} //
-\ No newline at end of file
-+} // ImageIO
-+
-+#endif // 0
-+
 diff -ur nvidia-texture-tools/src/nvmath/nvmath.h org/src/nvmath/nvmath.h
 --- nvidia-texture-tools/src/nvmath/nvmath.h	2014-02-18 20:25:33.931754700 +0800
 +++ org/src/nvmath/nvmath.h	2010-05-15 01:59:28.000000000 +0800
@@ -51,56 +30,109 @@ diff -ur nvidia-texture-tools/src/nvmath/nvmath.h org/src/nvmath/nvmath.h
  
  #if NV_OS_WIN32
 diff -ur nvidia-texture-tools/src/nvtt/CompressionOptions.cpp org/src/nvtt/CompressionOptions.cpp
---- nvidia-texture-tools/src/nvtt/CompressionOptions.cpp	2014-02-18 20:55:16.256792800 +0800
+--- nvidia-texture-tools/src/nvtt/CompressionOptions.cpp	2014-02-28 21:43:02.805961700 +0800
 +++ org/src/nvtt/CompressionOptions.cpp	2010-05-15 01:59:28.000000000 +0800
-@@ -54,11 +54,6 @@
- 	m.gmask = 0x0000FF00;
- 	m.rmask = 0x00FF0000;
- 	m.amask = 0xFF000000;
--	/*m.rmask = 0x00000F00;
--	m.gmask = 0x000000F0;
--	m.bmask = 0x0000000F;
--	m.amask = 0x0000F000;*/
+@@ -23,7 +23,6 @@
+ 
+ #include "nvtt.h"
+ #include "CompressionOptions.h"
+-#include <stdio.h>
+ 
+ using namespace nv;
+ using namespace nvtt;
+@@ -32,7 +31,6 @@
+ /// Constructor. Sets compression options to the default values.
+ CompressionOptions::CompressionOptions() : m(*new CompressionOptions::Private())
+ {
+-	m.mask = 0;
+ 	reset();
+ }
+ 
+@@ -52,22 +50,10 @@
+ 	m.colorWeight.set(1.0f, 1.0f, 1.0f, 1.0f);
+ 
+ 	m.bitcount = 32;
+-	if (m.mask)
+-	{
+-		m.rmask = (m.mask & 0xf000) >> 12 << 8;
+-		m.gmask = (m.mask & 0xf00) >> 8 << 4;
+-		m.bmask = (m.mask & 0xf0) >> 4;
+-		m.amask = (m.mask & 0xf) << 12;
+-		printf("Set custom mask: %x r %04x g %04x, b %04x, a %04x\n", m.mask, m.rmask, m.gmask, m.bmask, m.amask);
+-	}
+-	else
+-	{
+-		m.bmask = 0x000000FF;
+-		m.gmask = 0x0000FF00;
+-		m.rmask = 0x00FF0000;
+-		m.amask = 0xFF000000;
+-	}
 -	
++	m.bmask = 0x000000FF;
++	m.gmask = 0x0000FF00;
++	m.rmask = 0x00FF0000;
++	m.amask = 0xFF000000;
  
  	m.enableColorDithering = false;
  	m.enableAlphaDithering = false;
-@@ -68,10 +63,9 @@
+@@ -77,20 +63,9 @@
  
  
  /// Set desired compression format.
--void CompressionOptions::setFormat(Format format, int val)
+-void CompressionOptions::setFormat(Format format, int val, long val2)
 +void CompressionOptions::setFormat(Format format)
  {
  	m.format = format;
 -	if (format == nvtt::Format_RGB) { m.bitcount = val; }
+-	m.mask = val2;
+-	if (m.mask)
+-	{
+-		m.rmask = (m.mask & 0xf000) >> 12 << 8;
+-		m.gmask = (m.mask & 0xf00) >> 8 << 4;
+-		m.bmask = (m.mask & 0xf0) >> 4;
+-		m.amask = (m.mask & 0xf) << 12;
+-		printf("Set custom mask: %x r %04x g %04x, b %04x, a %04x\n", m.mask, m.rmask, m.gmask, m.bmask, m.amask);
+-	}
+-
  }
  
  
+diff -ur nvidia-texture-tools/src/nvtt/CompressionOptions.h org/src/nvtt/CompressionOptions.h
+--- nvidia-texture-tools/src/nvtt/CompressionOptions.h	2014-02-28 21:08:36.808793400 +0800
++++ org/src/nvtt/CompressionOptions.h	2010-05-15 01:59:28.000000000 +0800
+@@ -45,7 +45,6 @@
+ 		uint gmask;
+ 		uint bmask;
+ 		uint amask;
+-		long mask;
+ 		
+ 		nv::String externalCompressor;
+ 
 diff -ur nvidia-texture-tools/src/nvtt/nvtt.h org/src/nvtt/nvtt.h
---- nvidia-texture-tools/src/nvtt/nvtt.h	2014-02-18 20:44:50.641009600 +0800
+--- nvidia-texture-tools/src/nvtt/nvtt.h	2014-02-28 21:03:53.285576800 +0800
 +++ org/src/nvtt/nvtt.h	2010-05-15 01:59:28.000000000 +0800
 @@ -104,7 +104,7 @@
  		
  		NVTT_API void reset();
  		
--		NVTT_API void setFormat(Format format,int = 32);
+-		NVTT_API void setFormat(Format format,int = 32, long = 0);
 +		NVTT_API void setFormat(Format format);
  		NVTT_API void setQuality(Quality quality);
  		NVTT_API void setColorWeights(float red, float green, float blue, float alpha = 1.0f);
  		
 diff -ur nvidia-texture-tools/src/nvtt/tools/compress.cpp org/src/nvtt/tools/compress.cpp
---- nvidia-texture-tools/src/nvtt/tools/compress.cpp	2014-02-18 20:43:48.155435700 +0800
+--- nvidia-texture-tools/src/nvtt/tools/compress.cpp	2014-02-28 21:43:02.885966300 +0800
 +++ org/src/nvtt/tools/compress.cpp	2010-05-15 01:59:28.000000000 +0800
-@@ -144,7 +144,6 @@
+@@ -144,8 +144,6 @@
  	bool silent = false;
  	bool bc1n = false;
  	nvtt::Format format = nvtt::Format_BC1;
 -	int bit = 32;
+-	long mask = 0;
  
  	const char * externalCompressor = NULL;
  
-@@ -192,20 +191,9 @@
+@@ -193,20 +191,9 @@
  		{
  			nocuda = true;
  		}
@@ -122,7 +154,27 @@ diff -ur nvidia-texture-tools/src/nvtt/tools/compress.cpp org/src/nvtt/tools/com
  		}
  		else if (strcmp("-bc1", argv[i]) == 0)
  		{
-@@ -297,9 +285,7 @@
+@@ -241,12 +228,7 @@
+ 		{
+ 			format = nvtt::Format_BC5;
+ 		}
+-		else if (strncmp("-mask", argv[i], 5) == 0)
+-		{
+-			char buf[16] = { 0 };
+-			strcpy(buf, argv[i] + 5);
+-			mask = strtol(buf, NULL, 16);
+-		}
++
+ 		// Undocumented option. Mainly used for testing.
+ 		else if (strcmp("-ext", argv[i]) == 0)
+ 		{
+@@ -299,15 +281,11 @@
+ 		printf("  -clamp   \tClamp wrapping mode (default).\n");
+ 		printf("  -repeat  \tRepeat wrapping mode.\n");
+ 		printf("  -nomips  \tDisable mipmap generation.\n\n");
+-		printf("  -mask  \tSet custom mask. rgba, FF00\n\n");
+-
+ 
  		printf("Compression options:\n");
  		printf("  -fast    \tFast compression.\n");
  		printf("  -nocuda  \tDo not use cuda compressor.\n");
@@ -133,11 +185,11 @@ diff -ur nvidia-texture-tools/src/nvtt/tools/compress.cpp org/src/nvtt/tools/com
  		printf("  -bc1     \tBC1 format (DXT1)\n");
  		printf("  -bc1n    \tBC1 normal map format (DXT1nm)\n");
  		printf("  -bc1a    \tBC1 format with binary alpha (DXT1a)\n");
-@@ -411,7 +397,7 @@
+@@ -419,7 +397,7 @@
  	}
  
  	nvtt::CompressionOptions compressionOptions;
--	compressionOptions.setFormat(format, bit);
+-	compressionOptions.setFormat(format, bit, mask);
 +	compressionOptions.setFormat(format);
  	if (fast)
  	{
