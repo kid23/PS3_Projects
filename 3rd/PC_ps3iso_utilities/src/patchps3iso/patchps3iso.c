@@ -1185,7 +1185,7 @@ int main(int argc, const char* argv[])
         (u32) (((t_finish - t_start)/(CLOCKS_PER_SEC * 60)) % 60), (u32) (((t_finish - t_start)/(CLOCKS_PER_SEC)) % 60),
         (u32) (((t_finish - t_start)/(CLOCKS_PER_SEC/100)) % 100), param_patched ? 'Y' : 'N', self_sprx_patched);
 
-    if(argc < 2) {
+    if(argc < 2 || replace) {
         printf("\nPress ENTER key to exit\n");
         get_input_char();
     }
@@ -1205,7 +1205,7 @@ err:
         if(directory_iso2[n].name) {free(directory_iso2[n].name); directory_iso2[n].name = NULL;}
     
     if(directory_iso2) free(directory_iso2);
-    if(sectors) free(sectors);
+    if(replace_sectors) free(replace_sectors);
 
     printf("\nPress ENTER key to exit\n");
     get_input_char();
