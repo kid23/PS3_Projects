@@ -1,0 +1,3 @@
+[submodule "tools/ps3toolchain"]
+	path = tools/ps3toolchain
+	url = https://github.com/ps3dev/ps3toolchain
