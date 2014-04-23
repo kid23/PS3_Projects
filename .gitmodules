@@ -1,3 +1,6 @@
 [submodule "tools/ps3toolchain"]
 	path = tools/ps3toolchain
 	url = https://github.com/ps3dev/ps3toolchain
+[submodule "WHITE_ALBUM2"]
+	path = WHITE_ALBUM2
+	url = https://github.com/kid23/WHITE_ALBUM2.git
